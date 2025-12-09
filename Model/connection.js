@@ -18,7 +18,7 @@ async function query(sql, params) {
     sql = mysql.format(sql, params);
     console.log('Executing query:', sql); //not sure what this is doing
     try {
-        const [results, ] = await connection.execute(sql, params);
+        const [results] = await connection.execute(sql, params);
         return results;
     }
    catch (error) {
