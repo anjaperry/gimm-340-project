@@ -297,7 +297,6 @@ const ErrorHandler = {
 //Build the sill so Alexa can read it
 const skillBuilder = Alexa.SkillBuilders.custom()
     .addRequestHandlers(
-        PingIntentHandler,
         //InsertIntentHandler,
         //GetAllFromDatabaseIntentHandler,
         //GetItemFromDatabaseIntentHandler,
@@ -307,7 +306,8 @@ const skillBuilder = Alexa.SkillBuilders.custom()
         CancelAndStopIntentHandler,
         FallbackIntentHandler,
         SessionEndedRequestHandler,
-        IntentReflectorHandler
+        IntentReflectorHandler,
+        PingIntentHandler,
         //If Alexa isn't working when you prompt it, make sure the associated function is added here.
     )
     .addErrorHandlers(ErrorHandler)
