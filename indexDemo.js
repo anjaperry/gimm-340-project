@@ -16,21 +16,13 @@ const LaunchRequestHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
     },
-    async handle(handlerInput) {
-        try {
-            const speakOutput = 'Welcome to the Arduino Demo. What would you like to do today?';
+    handle(handlerInput) {
+        const speakOutput = 'Welcome to the Arduino Demo. What would you like to do today?';
 
-            return handlerInput.responseBuilder
-                .speak(speakOutput)
-                .reprompt(speakOutput)
-                .getResponse();
-        } catch (error) {
-            console.error('Launch request error:', error);
-            const speakOutput = 'Sorry, there was a problem starting the skill. Please try again later.';
-            return handlerInput.responseBuilder
-                .speak(speakOutput)
-                .getResponse();
-        }
+        return handlerInput.responseBuilder
+            .speak(speakOutput)
+            .reprompt(speakOutput)
+            .getResponse();
     }
 };
 
