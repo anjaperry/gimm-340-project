@@ -38,12 +38,12 @@ const LaunchRequestHandler = {
 
 //A very simple call-and-response intent handler. Responds "Pong!" when the user enters "Ping".
 //If you want a good baseline handler with only the necessities, this is a good one to copy.
-const PingIntentHandler = {
+const PingPongIntentHandler = {
     canHandle(handlerInput) {
         //If Alexa gets a request...
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
             ///And the prompt matches an utterance for the "PingIntent" intent...
-            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'PingIntent';
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'PingPongIntent';
     },
     //Do stuff
     handle(handlerInput) {
@@ -306,7 +306,7 @@ const skillBuilder = Alexa.SkillBuilders.custom()
         CancelAndStopIntentHandler,
         FallbackIntentHandler,
         SessionEndedRequestHandler,
-        PingIntentHandler,
+        PingPongIntentHandler,
         IntentReflectorHandler,
         //If Alexa isn't working when you prompt it, make sure the associated function is added here.
     )
