@@ -306,8 +306,8 @@ const skillBuilder = Alexa.SkillBuilders.custom()
         CancelAndStopIntentHandler,
         FallbackIntentHandler,
         SessionEndedRequestHandler,
-        IntentReflectorHandler,
         PingIntentHandler,
+        IntentReflectorHandler,
         //If Alexa isn't working when you prompt it, make sure the associated function is added here.
     )
     .addErrorHandlers(ErrorHandler)
