@@ -11,7 +11,7 @@ async function query(sql, params) {
             user: "harveyholm",
             password: "V7gDEzqTdc9G5qKfJ1rZWbTpR69ENUr8GzE",
             database: 'harveyholm',
-            connectTimeout: 3000, // 3 seconds untill timeout
+            //connectTimeout: 3000, // 3 seconds untill timeout
         });
         console.log('Connected to database');
     }
