@@ -65,7 +65,7 @@ const buoySelectIntentHandler = {
             && Alexa.getIntentName(handlerInput.requestEnvelope) === 'buoySelectIntent';
     },
     async handle(handlerInput) {
-        const idSlot = Alexa.getSlotValue(handlerInput.requestEnvelope, 'IDEntry');
+        const idSlot = Alexa.getSlotValue(handlerInput.requestEnvelope, 'IDSelectEntry');
         const id = Number(idSlot);
 
         if (!Number.isFinite(id)) {
