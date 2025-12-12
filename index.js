@@ -1,6 +1,7 @@
 //commands because i keep forgetting them
 
-//Update entry {IDUpdateEntry} X axis is {updateXAxis} y axis is {updateYAxis} z axis is {updateZAxis} and distance is {updateDistance}
+//Update entry {IDUpdateEntry}  The first axis is {updateXAxis}  The second axis is {updateYAxis}  The thrid axis is {updateZAxis} and the distance is {updateDistance}
+//Update entry 1 The first axis is 1 The second axis is 1 The thrid axis is 1 and the distance is 1
 //delete entry {IDDeleteEntry}
 //What are the values in entry {IDSelectEntry}
 //Add entry timestamp
@@ -120,14 +121,14 @@ const buoyUpdateIntentHandler = {
         const y = Number(get('updateYAxis'));
         const z = Number(get('updateZAxis'));
         const distanceId = Number(get('updateDistance'));
-        const gyroTime = get('gyro_time') || get('updateGyroTime');
+        const gyroTime = '12:00:00'; // Fixed time for now
 
         if (!Number.isFinite(id)) {
             const speakOutput = 'Please provide a valid numeric ID to update.';
             return handlerInput.responseBuilder.speak(speakOutput).getResponse();
         }
-        if (![x, y, z, distanceId].every(Number.isFinite) || !gyroTime) {
-            const speakOutput = 'Please provide x, y, z, distance id, and time.';
+        if (![x, y, z, distanceId].every(Number.isFinite)) {
+            const speakOutput = 'Please provide valid numbers for x, y, z axes and distance.';
             return handlerInput.responseBuilder.speak(speakOutput).getResponse();
         }
 
