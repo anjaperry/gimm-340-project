@@ -58,6 +58,122 @@ const PingPongIntentHandler = {
     }
 };
 
+//Adds a new gyro_main row using the buoy model helper
+const buoyAddIntentHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'buoyAddIntent';
+    },
+    async handle(handlerInput) {
+        const get = (name) => Alexa.getSlotValue(handlerInput.requestEnvelope, name);
+        const x = Number(get('x_axis'));
+        const y = Number(get('y_axis'));
+        const z = Number(get('z_axis'));
+        const distanceId = Number(get('distance_id'));
+        const gyroTime = get('gyro_time'); // expect 'HH:MM:SS'
+
+        if (![x, y, z, distanceId].every(Number.isFinite) || !gyroTime) {
+            const speakOutput = 'Please provide x, y, z, distance id, and time.';
+            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+        }
+
+        try {
+            const result = await buoy.addRow({
+                x_axis: x,
+                y_axis: y,
+                z_axis: z,
+                distance_id: distanceId,
+                gyro_time: gyroTime,
+            });
+            const insertedId = result?.insertId ?? (Array.isArray(result) ? result[0]?.insertId : undefined);
+            const speakOutput = insertedId
+                ? `Added entry with ID ${insertedId}.`
+                : 'Added entry successfully.';
+            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+        } catch (err) {
+            console.error('buoyAddIntent error:', err);
+            const speakOutput = 'Sorry, I could not add that buoy entry right now.';
+            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+        }
+    }
+};
+
+//Updates an existing gyro_main row using the buoy model helper
+const buoyUpdateIntentHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'buoyUpdateIntent';
+    },
+    async handle(handlerInput) {
+        const get = (name) => Alexa.getSlotValue(handlerInput.requestEnvelope, name);
+        const id = Number(get('IDUpdateEntry'));
+        const x = Number(get('x_axis'));
+        const y = Number(get('y_axis'));
+        const z = Number(get('z_axis'));
+        const distanceId = Number(get('distance_id'));
+        const gyroTime = get('gyro_time');
+
+        if (!Number.isFinite(id)) {
+            const speakOutput = 'Please provide a valid numeric ID to update.';
+            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+        }
+        if (![x, y, z, distanceId].every(Number.isFinite) || !gyroTime) {
+            const speakOutput = 'Please provide x, y, z, distance id, and time.';
+            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+        }
+
+        try {
+            const result = await buoy.updateRow({
+                id,
+                x_axis: x,
+                y_axis: y,
+                z_axis: z,
+                distance_id: distanceId,
+                gyro_time: gyroTime,
+            });
+            const affected = result?.affectedRows ?? result?.rowCount ?? 0;
+            const speakOutput = affected > 0
+                ? `Updated entry with ID ${id}.`
+                : `No entry found with ID ${id} to update.`;
+            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+        } catch (err) {
+            console.error('buoyUpdateIntent error:', err);
+            const speakOutput = 'Sorry, I could not update that buoy entry right now.';
+            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+        }
+    }
+};
+
+//Deletes a gyro_main row by ID using the buoy model helper
+const buoyDeleteIntentHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'buoyDeleteIntent';
+    },
+    async handle(handlerInput) {
+        const idSlot = Alexa.getSlotValue(handlerInput.requestEnvelope, 'IDDeleteEntry');
+        const id = Number(idSlot);
+
+        if (!Number.isFinite(id)) {
+            const speakOutput = 'Please provide a valid numeric ID to delete.';
+            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+        }
+
+        try {
+            const result = await buoy.deleteRow({ id });
+            const affected = result?.affectedRows ?? result?.rowCount ?? 0;
+            const speakOutput = affected > 0
+                ? `Deleted entry with ID ${id}.`
+                : `No entry found with ID ${id} to delete.`;
+            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+        } catch (err) {
+            console.error('buoyDeleteIntent error:', err);
+            const speakOutput = 'Sorry, I could not delete that buoy entry right now.';
+            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+        }
+    }
+};
+
 //Reads a gyro_main row by ID using the buoy model helper
 const buoySelectIntentHandler = {
     canHandle(handlerInput) {
@@ -91,109 +207,6 @@ const buoySelectIntentHandler = {
         }
     }
 };
-
-//This handler adds an item to the database
-// const InsertIntentHandler = {
-//     canHandle(handlerInput) {
-//         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-//             && Alexa.getIntentName(handlerInput.requestEnvelope) === 'InsertIntent';
-//     },
-//     handle(handlerInput) {
-//         const item = Alexa.getSlotValue(handlerInput.requestEnvelope, 'item');
-
-//         insertToDatabase(item);
-
-//         const speakOutput = "Added " + item + " to the database.";
-//         return handlerInput.responseBuilder
-//             .speak(speakOutput)
-//             //.reprompt('add a reprompt if you want to keep the session open for the user to respond')
-//             .getResponse();
-//     }
-// };
-
-//This handler gets Alexa to read out every item from the database
-// const GetAllFromDatabaseIntentHandler = {
-//     canHandle(handlerInput) {
-//         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-//             && Alexa.getIntentName(handlerInput.requestEnvelope) === 'GetAllFromDatabaseIntent';
-//     },
-//     async handle(handlerInput) {
-//         try {
-//             const result = await getFromDatabase();
-
-//             let speakOutput;
-//             //If we don't get a result or the result is empty, make the speakOutput an error
-//             if (!result || result.length === 0) {
-//                 speakOutput = id ? `No item found with ID ${id}.` : 'The database is empty.';
-//             } 
-//             //If we get a result that is an array, make the speakOutput an easy-to-read list
-//             else if (Array.isArray(result)) {
-//                 speakOutput = result.map(item => item.info || JSON.stringify(item)).join(', ');
-//             } 
-//             //If we get a result that is one object (like one item from a database), make speakOutput the result we got from getFromDatabase()
-//             else if (typeof result === 'object') {
-//                 speakOutput = result.info || JSON.stringify(result);
-//             } 
-//             //If we get something else, just make speakOutput a stringified version of it
-//             else {
-//                 speakOutput = String(result);
-//             }
-
-//             return handlerInput.responseBuilder
-//                 .speak(speakOutput)
-//                 .getResponse();
-
-//         } catch (err) {
-//             console.error('Database error:', err);
-//             return handlerInput.responseBuilder
-//                 .speak('Sorry, I could not access the database right now.')
-//                 .getResponse();
-//         }
-//     }
-// };
-
-//This handler gets Alexa to read out a particular item from the database, given its ID
-// const GetItemFromDatabaseIntentHandler = {
-//     canHandle(handlerInput) {
-//         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-//             && Alexa.getIntentName(handlerInput.requestEnvelope) === 'GetItemFromDatabaseIntent';
-//     },
-//     async handle(handlerInput) {
-//         try {
-//             const id = Alexa.getSlotValue(handlerInput.requestEnvelope, 'id');
-//             const result = await getFromDatabase(id);
-
-//             let speakOutput;
-//             //If we don't get a result or the result is empty, make the speakOutput an error
-//             if (!result || result.length === 0) {
-//                 speakOutput = id ? `No item found with ID ${id}.` : 'The database is empty.';
-//             } 
-//             //If we get a result that is an array, make the speakOutput an easy-to-read list
-//             else if (Array.isArray(result)) {
-//                 speakOutput = result.map(item => item.info || JSON.stringify(item)).join(', ');
-//             } 
-//             //If we get a result that is one object (like one item from a database), make speakOutput the result we got from getFromDatabase()
-//             else if (typeof result === 'object') {
-//                 speakOutput = result.info || JSON.stringify(result);
-//             } 
-//             //If we get something else, just make speakOutput a stringified version of it
-//             else {
-//                 speakOutput = String(result);
-//             }
-
-//             return handlerInput.responseBuilder
-//                 .speak(speakOutput)
-//                 .getResponse();
-
-//         } catch (err) {
-//             console.error('Database error:', err);
-//             return handlerInput.responseBuilder
-//                 .speak('Sorry, I could not access the database right now.')
-//                 .getResponse();
-//         }
-//     }
-
-// };
 
 //////////////////////////////////
 ////////BUILT IN FUNCTIONS////////
@@ -342,6 +355,9 @@ const skillBuilder = Alexa.SkillBuilders.custom()
         SessionEndedRequestHandler,
         PingPongIntentHandler,
         buoySelectIntentHandler,
+        buoyAddIntentHandler,
+        buoyUpdateIntentHandler,
+        buoyDeleteIntentHandler,
         IntentReflectorHandler,
         //If Alexa isn't working when you prompt it, make sure the associated function is added here.
     )
