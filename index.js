@@ -87,9 +87,15 @@ const buoyAddIntentHandler = {
         const z = 15;
         const distanceId = 1;
         
-        // Generate current time in HH:MM:SS format
+        // Generate current time in HH:MM:SS format (Mountain Time)
         const now = new Date();
-        const gyroTime = now.toTimeString().split(' ')[0]; // Gets 'HH:MM:SS'
+        const gyroTime = now.toLocaleTimeString('en-US', { 
+            timeZone: 'America/Denver',
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
 
         // if (![x, y, z, distanceId].every(Number.isFinite)) {
         //     const speakOutput = 'Please provide x, y, z, and distance id.';
