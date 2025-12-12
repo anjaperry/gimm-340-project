@@ -58,6 +58,40 @@ const PingPongIntentHandler = {
     }
 };
 
+//Reads a gyro_main row by ID using the buoy model helper
+const gyroIntentHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'gyroIntent';
+    },
+    async handle(handlerInput) {
+        const idSlot = Alexa.getSlotValue(handlerInput.requestEnvelope, 'IDEntry');
+        const id = Number(idSlot);
+
+        if (!Number.isFinite(id)) {
+            const speakOutput = 'Please provide a valid numeric ID to look up.';
+            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+        }
+
+        try {
+            const rows = await buoy.selectById({ id });
+            if (!rows || rows.length === 0) {
+                const speakOutput = `No entry found for ID ${id}.`;
+                return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+            }
+
+            const record = rows[0];
+            const distance = record.distance_value || record.distance || record.distance_id;
+            const speakOutput = `Entry ${id}: distance ${distance}, x ${record.x_axis}, y ${record.y_axis}, z ${record.z_axis}.`;
+            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+        } catch (err) {
+            console.error('gyroIntent error:', err);
+            const speakOutput = 'Sorry, I could not fetch that gyro entry right now.';
+            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+        }
+    }
+};
+
 //This handler adds an item to the database
 // const InsertIntentHandler = {
 //     canHandle(handlerInput) {
@@ -307,6 +341,7 @@ const skillBuilder = Alexa.SkillBuilders.custom()
         FallbackIntentHandler,
         SessionEndedRequestHandler,
         PingPongIntentHandler,
+        gyroIntentHandler,
         IntentReflectorHandler,
         //If Alexa isn't working when you prompt it, make sure the associated function is added here.
     )
