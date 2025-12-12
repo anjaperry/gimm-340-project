@@ -59,10 +59,10 @@ const PingPongIntentHandler = {
 };
 
 //Reads a gyro_main row by ID using the buoy model helper
-const gyroIntentHandler = {
+const buoySelectIntentHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'gyroIntent';
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'buoySelectIntent';
     },
     async handle(handlerInput) {
         const idSlot = Alexa.getSlotValue(handlerInput.requestEnvelope, 'IDEntry');
@@ -81,15 +81,12 @@ const gyroIntentHandler = {
             }
 
             const record = rows[0];
-            const distanceRaw = record.distance_value || record.distance || record.distance_id;
-            const distance = Number.isFinite(Number(distanceRaw))
-                ? Number(distanceRaw).toFixed(2)
-                : distanceRaw;
+            const distance = record.distance_value || record.distance || record.distance_id;
             const speakOutput = `Entry ${id}: distance ${distance}, x ${record.x_axis}, y ${record.y_axis}, z ${record.z_axis}.`;
             return handlerInput.responseBuilder.speak(speakOutput).getResponse();
         } catch (err) {
-            console.error('gyroIntent error:', err);
-            const speakOutput = 'Sorry, I could not fetch that gyro entry right now.';
+            console.error('buoySelectIntent error:', err);
+            const speakOutput = 'Sorry, I could not fetch that buoy entry right now.';
             return handlerInput.responseBuilder.speak(speakOutput).getResponse();
         }
     }
@@ -344,7 +341,7 @@ const skillBuilder = Alexa.SkillBuilders.custom()
         FallbackIntentHandler,
         SessionEndedRequestHandler,
         PingPongIntentHandler,
-        gyroIntentHandler,
+        buoySelectIntentHandler,
         IntentReflectorHandler,
         //If Alexa isn't working when you prompt it, make sure the associated function is added here.
     )
