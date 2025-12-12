@@ -1,3 +1,12 @@
+//commands because i keep forgetting them
+
+//Update entry {IDUpdateEntry} X axis is {updateXAxis} y axis is {updateYAxis} z axis is {updateZAxis} and distance is {updateDistance}
+//delete entry {IDDeleteEntry}
+//What are the values in entry {IDSelectEntry}
+//Add entry timestamp
+
+
+
 //Database connection
 const buoy = require("./Model/buoy.js");
 
@@ -107,11 +116,11 @@ const buoyUpdateIntentHandler = {
     async handle(handlerInput) {
         const get = (name) => Alexa.getSlotValue(handlerInput.requestEnvelope, name);
         const id = Number(get('IDUpdateEntry'));
-        const x = Number(get('x_axis'));
-        const y = Number(get('y_axis'));
-        const z = Number(get('z_axis'));
-        const distanceId = Number(get('distance_id'));
-        const gyroTime = get('gyro_time');
+        const x = Number(get('updateXAxis'));
+        const y = Number(get('updateYAxis'));
+        const z = Number(get('updateZAxis'));
+        const distanceId = Number(get('updateDistance'));
+        const gyroTime = get('gyro_time') || get('updateGyroTime');
 
         if (!Number.isFinite(id)) {
             const speakOutput = 'Please provide a valid numeric ID to update.';
