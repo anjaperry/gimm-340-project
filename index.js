@@ -81,7 +81,10 @@ const gyroIntentHandler = {
             }
 
             const record = rows[0];
-            const distance = record.distance_value || record.distance || record.distance_id;
+            const distanceRaw = record.distance_value || record.distance || record.distance_id;
+            const distance = Number.isFinite(Number(distanceRaw))
+                ? Number(distanceRaw).toFixed(2)
+                : distanceRaw;
             const speakOutput = `Entry ${id}: distance ${distance}, x ${record.x_axis}, y ${record.y_axis}, z ${record.z_axis}.`;
             return handlerInput.responseBuilder.speak(speakOutput).getResponse();
         } catch (err) {
