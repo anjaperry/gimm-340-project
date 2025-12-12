@@ -75,17 +75,26 @@ const buoyAddIntentHandler = {
             && Alexa.getIntentName(handlerInput.requestEnvelope) === 'buoyAddIntent';
     },
     async handle(handlerInput) {
-        const get = (name) => Alexa.getSlotValue(handlerInput.requestEnvelope, name);
-        const x = Number(get('x_axis'));
-        const y = Number(get('y_axis'));
-        const z = Number(get('z_axis'));
-        const distanceId = Number(get('distance_id'));
-        const gyroTime = get('gyro_time'); // expect 'HH:MM:SS'
+        // const get = (name) => Alexa.getSlotValue(handlerInput.requestEnvelope, name);
+        // const x = Number(get('x_axis'));
+        // const y = Number(get('y_axis'));
+        // const z = Number(get('z_axis'));
+        // const distanceId = Number(get('distance_id'));
 
-        if (![x, y, z, distanceId].every(Number.isFinite) || !gyroTime) {
-            const speakOutput = 'Please provide x, y, z, distance id, and time.';
-            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
-        }
+        // Fixed test values
+        const x = 5;
+        const y = 10;
+        const z = 15;
+        const distanceId = 1;
+        
+        // Generate current time in HH:MM:SS format
+        const now = new Date();
+        const gyroTime = now.toTimeString().split(' ')[0]; // Gets 'HH:MM:SS'
+
+        // if (![x, y, z, distanceId].every(Number.isFinite)) {
+        //     const speakOutput = 'Please provide x, y, z, and distance id.';
+        //     return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+        // }
 
         try {
             const result = await buoy.addRow({
@@ -121,7 +130,7 @@ const buoyUpdateIntentHandler = {
         const y = Number(get('updateYAxis'));
         const z = Number(get('updateZAxis'));
         const distanceId = Number(get('updateDistance'));
-        const gyroTime = '12:00:00'; // Fixed time for now
+        //const gyroTime = '12:00:00'; // Fixed time for now
 
         if (!Number.isFinite(id)) {
             const speakOutput = 'Please provide a valid numeric ID to update.';
@@ -139,7 +148,7 @@ const buoyUpdateIntentHandler = {
                 y_axis: y,
                 z_axis: z,
                 distance_id: distanceId,
-                gyro_time: gyroTime,
+                //gyro_time: gyroTime,
             });
             const affected = result?.affectedRows ?? result?.rowCount ?? 0;
             const speakOutput = affected > 0
