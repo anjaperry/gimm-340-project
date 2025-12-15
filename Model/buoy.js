@@ -107,17 +107,16 @@ async function insertGyroData(x_axis, y_axis, z_axis) {
 }
 
 async function insertDistance(distance) {
-    const sql = "INSERT INTO distance (distance) VALUES (?)"
-
-    return new Promise((resolve, reject) => {
-        connection.query(sql, [distance], (err, result) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(result.insertId);
-            }
-        });
-    });
+    const sql = "INSERT INTO distance (distance) VALUES (?)";
+    try {
+        const result = await connection.query(sql, [distance]);
+        console.log("Distance insert result:", result);
+        // mysql2 returns an array sometimes
+        return result.insertId || (Array.isArray(result) ? result[0]?.insertId : undefined);
+    } catch (err) {
+        console.error("Failed to insert distance:", err);
+        throw err;
+    }
 }
 
 module.exports = {
