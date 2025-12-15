@@ -369,7 +369,21 @@ app.use(express.urlencoded({ extended: true }));
 // Arduino Data Receiver
 app.post('/addtodatabase', async (req, res) => {
     try {
+        console.log('Raw request body:', req.body);
+        
         const { x, y, z, distance } = req.body;
+        
+        // Validate that values are numbers
+        const xNum = Number(x);
+        const yNum = Number(y);
+        const zNum = Number(z);
+        
+        console.log('Parsed values:', { x, y, z, xNum, yNum, zNum });
+        
+        if (isNaN(xNum) || isNaN(yNum) || isNaN(zNum)) {
+            console.error('Invalid numeric values received:', { x, y, z });
+            return res.status(400).send('Invalid numeric values');
+        }
         
         // Generate current time in Mountain Time
         const now = new Date();
@@ -383,15 +397,15 @@ app.post('/addtodatabase', async (req, res) => {
         
         // Insert into database
         const result = await buoy.addRow({
-            x_axis: Number(x),
-            y_axis: Number(y),
-            z_axis: Number(z),
-            distance_id: 1, // Or parse from Arduino if needed
+            x_axis: xNum,
+            y_axis: yNum,
+            z_axis: zNum,
+            distance_id: 1,
             gyro_time: gyroTime,
         });
         
         res.status(200).send('Data received and stored');
-        console.log('Arduino data stored:', { x, y, z, distance, gyroTime });
+        console.log('Arduino data stored:', { x: xNum, y: yNum, z: zNum, distance, gyroTime });
     } catch (err) {
         console.error('Error storing Arduino data:', err);
         res.status(500).send('Error storing data');
