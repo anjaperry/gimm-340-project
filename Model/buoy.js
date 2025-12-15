@@ -106,7 +106,7 @@ async function insertGyroData(x_axis, y_axis, z_axis) {
     })
 }
 
-async function insertDistanceData(distance) {
+async function insertDistance(distance) {
     const sql = "INSERT INTO distance (distance) VALUES (?)"
 
     return new Promise((resolve, reject) => {
@@ -127,5 +127,5 @@ module.exports = {
     updateRow,
     deleteRow, 
     insertGyroData, 
-    insertDistanceData
+    insertDistance
 }

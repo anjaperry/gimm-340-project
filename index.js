@@ -26,21 +26,17 @@ app.use(express.json());
 //////////////////////////////////
 app.post('/addtodatabase', async (req, res) => {
     try {
-        console.log('Incoming:', req.body);
+        const { x, y, z, distance } = req.body;
 
-        const { roll, pitch, yaw, distance } = req.body;
+        console.log("Received data from Arduino:", req.body);
 
-        const x = Number(roll);
-        const y = Number(pitch);
-        const z = Number(yaw);
-        const d = Number(distance);
-
-        if (![x, y, z, d].every(Number.isFinite)) {
+        if (![x, y, z, distance].every(Number.isFinite)) {
+            console.log("Invalid data types:", { x, y, z, distance });
             return res.status(400).send("Invalid data");
         }
 
-        const distanceId = await buoy.insertDistanceData(d);
-        console.log('distanceId:', distanceId);
+        const distanceId = await buoy.insertDistance(distance);
+        console.log("Inserted distance, got ID:", distanceId);
 
         const now = new Date();
         const gyroTime = now.toLocaleTimeString('en-US', {
@@ -48,19 +44,20 @@ app.post('/addtodatabase', async (req, res) => {
             hour12: false
         });
 
-        await buoy.addRow({
+        const result = await buoy.addRow({
             x_axis: x,
             y_axis: y,
             z_axis: z,
             distance_id: distanceId,
             gyro_time: gyroTime
         });
+        console.log("Inserted gyro row:", result);
 
         res.send("SUCCESS");
     }
     catch (err) {
         console.error("Arduino DB insert error:", err);
-        res.status(500).send("Database error");
+        res.status(500).send("Error storing data");
     }
 });
 
