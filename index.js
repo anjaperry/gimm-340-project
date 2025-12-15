@@ -1,3 +1,13 @@
+//commands because i keep forgetting them
+
+//Update entry {IDUpdateEntry}  The first axis is {updateXAxis}  The second axis is {updateYAxis}  The thrid axis is {updateZAxis} and the distance is {updateDistance}
+//Update entry 1 The first axis is 1 The second axis is 1 The thrid axis is 1 and the distance is 1
+//delete entry {IDDeleteEntry}
+//What are the values in entry {IDSelectEntry}
+//Add entry timestamp
+
+
+
 //Database connection
 const buoy = require("./Model/buoy.js");
 
@@ -14,13 +24,21 @@ const LaunchRequestHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
     },
-    handle(handlerInput) {
-        const speakOutput = 'Welcome to the Arduino Demo. What would you like to do today?';
+    async handle(handlerInput) {
+        try {
+            const speakOutput = 'Welcome to the Arduino Demo. What would you like to do today?';
 
-        return handlerInput.responseBuilder
-            .speak(speakOutput)
-            .reprompt(speakOutput)
-            .getResponse();
+            return handlerInput.responseBuilder
+                .speak(speakOutput)
+                .reprompt(speakOutput)
+                .getResponse();
+        } catch (error) {
+            console.error('Launch request error:', error);
+            const speakOutput = 'Sorry, there was a problem starting the skill. Please try again later.';
+            return handlerInput.responseBuilder
+                .speak(speakOutput)
+                .getResponse();
+        }
     }
 };
 
@@ -30,12 +48,12 @@ const LaunchRequestHandler = {
 
 //A very simple call-and-response intent handler. Responds "Pong!" when the user enters "Ping".
 //If you want a good baseline handler with only the necessities, this is a good one to copy.
-const PingIntentHandler = {
+const PingPongIntentHandler = {
     canHandle(handlerInput) {
         //If Alexa gets a request...
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
             ///And the prompt matches an utterance for the "PingIntent" intent...
-            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'PingIntent';
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'PingPongIntent';
     },
     //Do stuff
     handle(handlerInput) {
@@ -50,107 +68,169 @@ const PingIntentHandler = {
     }
 };
 
-//This handler adds an item to the database
-const InsertIntentHandler = {
+//Adds a new gyro_main row using the buoy model helper
+const buoyAddIntentHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'InsertIntent';
-    },
-    handle(handlerInput) {
-        const item = Alexa.getSlotValue(handlerInput.requestEnvelope, 'item');
-
-        insertToDatabase(item);
-
-        const speakOutput = "Added " + item + " to the database.";
-        return handlerInput.responseBuilder
-            .speak(speakOutput)
-            //.reprompt('add a reprompt if you want to keep the session open for the user to respond')
-            .getResponse();
-    }
-};
-
-//This handler gets Alexa to read out every item from the database
-const GetAllFromDatabaseIntentHandler = {
-    canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'GetAllFromDatabaseIntent';
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'buoyAddIntent';
     },
     async handle(handlerInput) {
+        // const get = (name) => Alexa.getSlotValue(handlerInput.requestEnvelope, name);
+        // const x = Number(get('x_axis'));
+        // const y = Number(get('y_axis'));
+        // const z = Number(get('z_axis'));
+        // const distanceId = Number(get('distance_id'));
+
+        // Fixed test values
+        const x = 5;
+        const y = 10;
+        const z = 15;
+        const distanceId = 1;
+        
+        // Generate current time in HH:MM:SS format (Mountain Time)
+        const now = new Date();
+        const gyroTime = now.toLocaleTimeString('en-US', { 
+            timeZone: 'America/Denver',
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+
+        // if (![x, y, z, distanceId].every(Number.isFinite)) {
+        //     const speakOutput = 'Please provide x, y, z, and distance id.';
+        //     return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+        // }
+
         try {
-            const result = await getFromDatabase();
-
-            let speakOutput;
-            //If we don't get a result or the result is empty, make the speakOutput an error
-            if (!result || result.length === 0) {
-                speakOutput = id ? `No item found with ID ${id}.` : 'The database is empty.';
-            } 
-            //If we get a result that is an array, make the speakOutput an easy-to-read list
-            else if (Array.isArray(result)) {
-                speakOutput = result.map(item => item.info || JSON.stringify(item)).join(', ');
-            } 
-            //If we get a result that is one object (like one item from a database), make speakOutput the result we got from getFromDatabase()
-            else if (typeof result === 'object') {
-                speakOutput = result.info || JSON.stringify(result);
-            } 
-            //If we get something else, just make speakOutput a stringified version of it
-            else {
-                speakOutput = String(result);
-            }
-
-            return handlerInput.responseBuilder
-                .speak(speakOutput)
-                .getResponse();
-
+            const result = await buoy.addRow({
+                x_axis: x,
+                y_axis: y,
+                z_axis: z,
+                distance_id: distanceId,
+                gyro_time: gyroTime,
+            });
+            const insertedId = result?.insertId ?? (Array.isArray(result) ? result[0]?.insertId : undefined);
+            const speakOutput = insertedId
+                ? `Added entry with ID ${insertedId}.`
+                : 'Added entry successfully.';
+            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
         } catch (err) {
-            console.error('Database error:', err);
-            return handlerInput.responseBuilder
-                .speak('Sorry, I could not access the database right now.')
-                .getResponse();
+            console.error('buoyAddIntent error:', err);
+            const speakOutput = 'Sorry, I could not add that buoy entry right now.';
+            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
         }
     }
 };
 
-//This handler gets Alexa to read out a particular item from the database, given its ID
-const GetItemFromDatabaseIntentHandler = {
+//Updates an existing gyro_main row using the buoy model helper
+const buoyUpdateIntentHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'GetItemFromDatabaseIntent';
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'buoyUpdateIntent';
     },
     async handle(handlerInput) {
+        const get = (name) => Alexa.getSlotValue(handlerInput.requestEnvelope, name);
+        const id = Number(get('IDUpdateEntry'));
+        const x = Number(get('updateXAxis'));
+        const y = Number(get('updateYAxis'));
+        const z = Number(get('updateZAxis'));
+        const distanceId = Number(get('updateDistance'));
+        //const gyroTime = '12:00:00'; // Fixed time for now
+
+        if (!Number.isFinite(id)) {
+            const speakOutput = 'Please provide a valid numeric ID to update.';
+            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+        }
+        if (![x, y, z, distanceId].every(Number.isFinite)) {
+            const speakOutput = 'Please provide valid numbers for x, y, z axes and distance.';
+            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+        }
+
         try {
-            const id = Alexa.getSlotValue(handlerInput.requestEnvelope, 'id');
-            const result = await getFromDatabase(id);
-
-            let speakOutput;
-            //If we don't get a result or the result is empty, make the speakOutput an error
-            if (!result || result.length === 0) {
-                speakOutput = id ? `No item found with ID ${id}.` : 'The database is empty.';
-            } 
-            //If we get a result that is an array, make the speakOutput an easy-to-read list
-            else if (Array.isArray(result)) {
-                speakOutput = result.map(item => item.info || JSON.stringify(item)).join(', ');
-            } 
-            //If we get a result that is one object (like one item from a database), make speakOutput the result we got from getFromDatabase()
-            else if (typeof result === 'object') {
-                speakOutput = result.info || JSON.stringify(result);
-            } 
-            //If we get something else, just make speakOutput a stringified version of it
-            else {
-                speakOutput = String(result);
-            }
-
-            return handlerInput.responseBuilder
-                .speak(speakOutput)
-                .getResponse();
-
+            const result = await buoy.updateRow({
+                id,
+                x_axis: x,
+                y_axis: y,
+                z_axis: z,
+                distance_id: distanceId,
+                //gyro_time: gyroTime,
+            });
+            const affected = result?.affectedRows ?? result?.rowCount ?? 0;
+            const speakOutput = affected > 0
+                ? `Updated entry with ID ${id}.`
+                : `No entry found with ID ${id} to update.`;
+            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
         } catch (err) {
-            console.error('Database error:', err);
-            return handlerInput.responseBuilder
-                .speak('Sorry, I could not access the database right now.')
-                .getResponse();
+            console.error('buoyUpdateIntent error:', err);
+            const speakOutput = 'Sorry, I could not update that buoy entry right now.';
+            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
         }
     }
+};
 
+//Deletes a gyro_main row by ID using the buoy model helper
+const buoyDeleteIntentHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'buoyDeleteIntent';
+    },
+    async handle(handlerInput) {
+        const idSlot = Alexa.getSlotValue(handlerInput.requestEnvelope, 'IDDeleteEntry');
+        const id = Number(idSlot);
+
+        if (!Number.isFinite(id)) {
+            const speakOutput = 'Please provide a valid numeric ID to delete.';
+            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+        }
+
+        try {
+            const result = await buoy.deleteRow({ id });
+            const affected = result?.affectedRows ?? result?.rowCount ?? 0;
+            const speakOutput = affected > 0
+                ? `Deleted entry with ID ${id}.`
+                : `No entry found with ID ${id} to delete.`;
+            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+        } catch (err) {
+            console.error('buoyDeleteIntent error:', err);
+            const speakOutput = 'Sorry, I could not delete that buoy entry right now.';
+            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+        }
+    }
+};
+
+//Reads a gyro_main row by ID using the buoy model helper
+const buoySelectIntentHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'buoySelectIntent';
+    },
+    async handle(handlerInput) {
+        const idSlot = Alexa.getSlotValue(handlerInput.requestEnvelope, 'IDSelectEntry');
+        const id = Number(idSlot);
+
+        if (!Number.isFinite(id)) {
+            const speakOutput = 'Please provide a valid numeric ID to look up.';
+            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+        }
+
+        try {
+            const rows = await buoy.selectById({ id });
+            if (!rows || rows.length === 0) {
+                const speakOutput = `No entry found for ID ${id}.`;
+                return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+            }
+
+            const record = rows[0];
+            const distance = record.distance_value || record.distance || record.distance_id;
+            const speakOutput = `Entry ${id}: distance ${distance}, x ${record.x_axis}, y ${record.y_axis}, z ${record.z_axis}.`;
+            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+        } catch (err) {
+            console.error('buoySelectIntent error:', err);
+            const speakOutput = 'Sorry, I could not fetch that buoy entry right now.';
+            return handlerInput.responseBuilder.speak(speakOutput).getResponse();
+        }
+    }
 };
 
 //////////////////////////////////
@@ -255,41 +335,33 @@ const ErrorHandler = {
 ////////DATABASE FUNCTIONS////////
 //////////////////////////////////
 //Adds an item to the database
-async function insertToDatabase(info = null) {
-    const addResult = await noun.addRow({ info: info });
-    console.log('Add Result:', addResult);
-}
+// async function insertToDatabase(info = null) {
+//     const addResult = await noun.addRow({ info: info });
+//     console.log('Add Result:', addResult);
+// }
 
 //If ID is null, it returns all items
 //If ID is defined, it returns the item with that ID
-async function getFromDatabase(id = null) {
-    let result = null;
-    if (id == null) result = await noun.selectAllRows();
-    else result = await noun.selectById({ id: id });
+// async function getFromDatabase(id = null) {
+//     let result = null;
+//     if (id == null) result = await noun.selectAllRows();
+//     else result = await noun.selectById({ id: id });
 
-    console.log('Get Result:', result);
-    return result;
-}
+//     console.log('Get Result:', result);
+//     return result;
+// }
 
 //////////////////////////////////
 ////////ARDUINO RECEIVERS/////////
 //////////////////////////////////
-app.use(express.urlencoded({ extended: true }));
-//When your arduino adds something to the database, this is the POST request it should be sending
-app.post('/addtodatabase/',
-    (req, res) => {
-        const { x_axis, y_axis, z_axis } = req.body;
-        insertToDatabase(x_axis, y_axis, z_axis);
-        res.send("POST Request Called")
-    });
-
-app.post('/addtodatabase/',
-    (req, res) => {
-        const { distance } =req.body; 
-        insertToDatabase(distance); 
-        res.send("POST Request Called")
-    }
-);
+// app.use(express.urlencoded({ extended: true }));
+// //When your arduino adds something to the database, this is the POST request it should be sending
+// app.post('/addtodatabase/',
+//     (req, res) => {
+//         const { param1 } = req.body;
+//         insertToDatabase(param1 || "Default Value");
+//         res.send("POST Request Called")
+//     });
 
 //////////////////////////////////
 ////////EXPORT & RUN SERVER///////
@@ -297,17 +369,21 @@ app.post('/addtodatabase/',
 //Build the sill so Alexa can read it
 const skillBuilder = Alexa.SkillBuilders.custom()
     .addRequestHandlers(
-        PingIntentHandler,
-        InsertIntentHandler,
-        GetAllFromDatabaseIntentHandler,
-        GetItemFromDatabaseIntentHandler,
+        //InsertIntentHandler,
+        //GetAllFromDatabaseIntentHandler,
+        //GetItemFromDatabaseIntentHandler,
         LaunchRequestHandler,
         HelloWorldIntentHandler,
         HelpIntentHandler,
         CancelAndStopIntentHandler,
         FallbackIntentHandler,
         SessionEndedRequestHandler,
-        IntentReflectorHandler
+        PingPongIntentHandler,
+        buoySelectIntentHandler,
+        buoyAddIntentHandler,
+        buoyUpdateIntentHandler,
+        buoyDeleteIntentHandler,
+        IntentReflectorHandler,
         //If Alexa isn't working when you prompt it, make sure the associated function is added here.
     )
     .addErrorHandlers(ErrorHandler)
@@ -319,71 +395,8 @@ const adapter = new ExpressAdapter(skill, true, true);
 app.post('/', adapter.getRequestHandlers());
 
 //Run Server
-const port = 3000;
+const port = process.env.PORT || 3000;
 app.get('/', (req, res) => {
     res.send('Hello World!')
 })
-app.listen(port, () => console.log("Running on 3000"));
-
-// GET latest reading (joined gyro_main + distance)
-// app.get(
-//     '/buoy/',
-//     upload.none(),
-//     async (request, response) => {
-//         try {
-//             const sql = `
-//                 SELECT g.id, g.x_axis, g.y_axis, g.z_axis, g.gyro_time, d.distance
-//                 FROM gyro_main g
-//                 JOIN distance d ON d.id = g.distance_id
-//                 ORDER BY g.id DESC
-//                 LIMIT 1
-//             `;
-//             const results = await db.query(sql);
-//             if (!results || results.length === 0) {
-//                 return response.status(404).json({ message: 'No readings found' });
-//             }
-//             return response.json(results[0]);
-//         } catch (err) {
-//             console.error('GET /buoy error', err);
-//             return response.status(500).json({ error: 'Internal server error' });
-//         }
-// });
-
-// POST a new reading from the Arduino: { x_axis, y_axis, z_axis, distance, gyro_time? }
-// app.post(
-//     '/buoy/',
-//     async (request, response) => {
-//         const { x_axis, y_axis, z_axis, distance, gyro_time } = request.body;
-//         if (typeof x_axis === 'undefined' ||
-//             typeof y_axis === 'undefined' ||
-//             typeof z_axis === 'undefined' ||
-//             typeof distance === 'undefined') {
-//             return response.status(400).json({ error: 'Missing required fields' });
-//         }
-
-//         try {
-//             // Insert distance first
-//             const insertDistanceSql = 'INSERT INTO distance (distance) VALUES (?)';
-//             const resDistance = await db.query(insertDistanceSql, [distance]);
-//             const distanceId = resDistance.insertId || (resDistance[0] && resDistance[0].insertId);
-
-//             // Insert gyro_main row. Use provided gyro_time or CURRENT_TIME()
-//             const insertGyroSql = `
-//                 INSERT INTO gyro_main (x_axis, z_axis, y_axis, distance_id, gyro_time)
-//                 VALUES (?, ?, ?, ?, ?)
-//             `;
-//             const timeValue = gyro_time || new Date().toTimeString().split(' ')[0]; // "HH:MM:SS"
-//             await db.query(insertGyroSql, [x_axis, z_axis, y_axis, distanceId, timeValue]);
-
-//             return response.status(201).json({ message: 'Reading stored' });
-//         } catch (err) {
-//             console.error('POST /buoy error', err);
-//             return response.status(500).json({ error: 'Internal server error' });
-//         }
-//     });
-
-// Start server
-// const PORT = process.env.PORT || 3000;
-// app.listen(PORT, () => {
-//     console.log(`Buoy server listening on port ${PORT}`);
-// });
+app.listen(port, () => console.log(`Running on port ${port}`));
