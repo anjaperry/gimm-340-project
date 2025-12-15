@@ -1,5 +1,20 @@
 const connection = require("./connection");
 
+// Reset auto-increment to next ID after the highest existing ID
+async function resetAutoIncrement() {
+    try {
+        const maxIdResult = await connection.query('SELECT MAX(id) as max_id FROM gyro_main');
+        const maxId = maxIdResult[0]?.max_id || 0;
+        const nextId = maxId + 1;
+        
+        const resetSql = `ALTER TABLE gyro_main AUTO_INCREMENT = ${nextId}`;
+        await connection.query(resetSql);
+        console.log(`Auto-increment reset to ${nextId}`);
+    } catch (err) {
+        console.error('Error resetting auto-increment:', err);
+    }
+}
+
 async function selectAllRows() {
     // Old Version:
     // let sqlStatement = `SELECT * FROM distance`
@@ -135,6 +150,7 @@ async function insertDistanceData(distance) {
 }
 
 module.exports = {
+    resetAutoIncrement,
     selectAllRows,
     selectById,
     addRow,
