@@ -222,7 +222,7 @@ const buoySelectIntentHandler = {
 
             const record = rows[0];
             const distance = record.distance_value || record.distance || record.distance_id;
-            const speakOutput = `Entry ${id}: distance ${distance}, x ${record.x_axis}, y ${record.y_axis}, z ${record.z_axis}.`;
+            const speakOutput = `Entry ${id}: distance ${Number(distance).toFixed(2)}, x ${Number(record.x_axis).toFixed(2)}, y ${Number(record.y_axis).toFixed(2)}, z ${Number(record.z_axis).toFixed(2)}.`;
             return handlerInput.responseBuilder.speak(speakOutput).getResponse();
         } catch (err) {
             console.error('buoySelectIntent error:', err);
