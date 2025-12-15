@@ -11,7 +11,7 @@ char pass[] = "engine.011.click";
 
 // ===== Server Info =====
 char serverAddress[] = "aws-test-server.onrender.com";
-int port = 80;
+int port = 3000;
 
 // ===== MPU6050 Variables =====
 const int MPU = 0x68;
