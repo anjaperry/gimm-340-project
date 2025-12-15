@@ -10,7 +10,7 @@ char ssid[] = "ARRIS-1E9D";
 char pass[] = "engine.011.click";
 
 // ===== Server Info =====
-char serverAddress[] = "aws-test-jx11.onrender.com/";
+char serverAddress[] = "aws-test-jx11.onrender.com";
 int port = 3000;
 
 // ===== MPU6050 Variables =====
