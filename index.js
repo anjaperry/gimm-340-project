@@ -360,23 +360,31 @@ const ErrorHandler = {
 //////////////////////////////////
 app.post('/addtodatabase', async (req, res) => {
     try {
-        const { x, y, z, distance } = req.body;
+        console.log('Incoming:', req.body);
 
-        if (![x, y, z, distance].every(Number.isFinite)) {
+        const { roll, pitch, yaw, distance } = req.body;
+
+        const x = Number(roll);
+        const y = Number(pitch);
+        const z = Number(yaw);
+        const d = Number(distance);
+
+        if (![x, y, z, d].every(Number.isFinite)) {
             return res.status(400).send("Invalid data");
         }
 
-        // 1️⃣ Insert distance first
-        const distanceId = await buoy.insertDistanceData(distance);
+        // 1️⃣ Insert distance
+        const distanceId = await buoy.insertDistanceData(d);
+        console.log('distanceId:', distanceId);
 
-        // 2️⃣ Generate time
+        // 2️⃣ Time
         const now = new Date();
         const gyroTime = now.toLocaleTimeString('en-US', {
             timeZone: 'America/Denver',
             hour12: false
         });
 
-        // 3️⃣ Insert gyro data using distance_id
+        // 3️⃣ Insert gyro
         await buoy.addRow({
             x_axis: x,
             y_axis: y,
