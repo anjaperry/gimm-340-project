@@ -25,6 +25,8 @@ app.use(express.json());
 ////////ARDUINO RECEIVERS/////////
 //////////////////////////////////
 app.post('/addtodatabase', async (req, res) => {
+    console.log("Received body:", req.body);
+
     try {
         // Convert to numbers explicitly
         const x = Number(req.body.x);
