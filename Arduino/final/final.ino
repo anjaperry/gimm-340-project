@@ -133,19 +133,20 @@ void sendSensorData() {
   WiFiClient client;
   HttpClient httpClient(client, serverAddress, port);
 
-  String postData = "{";
-postData += "\"x\":" + String(roll, 2) + ",";
-postData += "\"y\":" + String(pitch, 2) + ",";
-postData += "\"z\":" + String(yaw, 2) + ",";
-postData += "\"distance\":" + String(distance, 2);
-postData += "}";
+  String jsonData = "{";
+  jsonData += "\"x\":" + String(roll, 2) + ",";
+  jsonData += "\"y\":" + String(pitch, 2) + ",";
+  jsonData += "\"z\":" + String(yaw, 2) + ",";
+  jsonData += "\"distance\":" + String(distance, 2);
+  jsonData += "}";
 
-httpClient.beginRequest();
-httpClient.post("/addtodatabase");
-httpClient.sendHeader("Content-Type", "application/json");
-httpClient.sendHeader("Content-Length", postData.length());
-httpClient.endRequest();
-httpClient.print(postData);
+  httpClient.beginRequest();
+  httpClient.post("/addtodatabase");
+  httpClient.sendHeader("Content-Type", "application/json");
+  httpClient.sendHeader("Content-Length", jsonData.length());
+  httpClient.endRequest();
+
+  httpClient.print(jsonData);
 
   int statusCode = httpClient.responseStatusCode();
   String response = httpClient.responseBody();

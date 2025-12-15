@@ -29,13 +29,15 @@ app.post('/addtodatabase', async (req, res) => {
         console.log("Received POST /addtodatabase");
         console.log("Request body:", req.body);
 
-        const { x, y, z, distance } = req.body;
+        const x = Number(req.body.x);
+const y = Number(req.body.y);
+const z = Number(req.body.z);
+const distance = Number(req.body.distance);
 
-        // Check that the data are numbers
-        if (![x, y, z, distance].every(n => typeof n === 'number')) {
-            console.log("Invalid data types:", { x, y, z, distance });
-            return res.status(400).send("Invalid data types");
-        }
+if (![x, y, z, distance].every(Number.isFinite)) {
+    console.log("Invalid numeric values:", req.body);
+    return res.status(400).send("Invalid numeric values");
+}
 
         // Insert distance first
         const distanceId = await buoy.insertDistance(distance);
