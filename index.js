@@ -26,42 +26,43 @@ app.use(express.json());
 //////////////////////////////////
 app.post('/addtodatabase', async (req, res) => {
     try {
-        console.log("Received POST /addtodatabase");
-        console.log("Request body:", req.body);
-
+        // Convert to numbers explicitly
         const x = Number(req.body.x);
-const y = Number(req.body.y);
-const z = Number(req.body.z);
-const distance = Number(req.body.distance);
+        const y = Number(req.body.y);
+        const z = Number(req.body.z);
+        const distance = Number(req.body.distance);
 
-if (![x, y, z, distance].every(Number.isFinite)) {
-    console.log("Invalid numeric values:", req.body);
-    return res.status(400).send("Invalid numeric values");
-}
+        if (![x, y, z, distance].every(Number.isFinite)) {
+            console.log("Invalid numeric values received:", req.body);
+            return res.status(400).send("Invalid numeric values");
+        }
 
         // Insert distance first
-        const distanceId = await buoy.insertDistance(distance);
-        console.log("Distance inserted, ID:", distanceId);
+        const distanceId = await buoy.insertDistanceData(distance);
 
-        // Generate gyro_time
+        // Current time
         const now = new Date();
-        const gyroTime = now.toLocaleTimeString('en-US', { timeZone: 'America/Denver', hour12: false });
+        const gyroTime = now.toLocaleTimeString('en-US', {
+            timeZone: 'America/Denver',
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
 
         // Insert gyro data
-        const result = await buoy.addRow({
+        await buoy.addRow({
             x_axis: x,
             y_axis: y,
             z_axis: z,
-            distance_id: distanceId,
+            distance_id: distanceId.insertId, // Use the returned insertId
             gyro_time: gyroTime
         });
-        console.log("Gyro row inserted:", result);
 
         res.send("SUCCESS");
     } catch (err) {
         console.error("Arduino DB insert error:", err);
-        console.error("Error stack:", err.stack);
-        res.status(500).send("Error storing data");
+        res.status(500).send("Database error");
     }
 });
 
