@@ -87,6 +87,21 @@ async function updateRow(parameters = {}) {     // probably need to change SET i
     return await connection.query(sqlStatement, queryParameters);
 }
 
+async function updateRowKeepTime(parameters = {}) {
+    const sqlStatement = `UPDATE gyro_main
+        SET x_axis = ?, y_axis = ?, z_axis = ?, distance_id = ?
+        WHERE id = ?`;
+    const queryParameters = [
+        parameters.x_axis,
+        parameters.y_axis,
+        parameters.z_axis,
+        parameters.distance_id,
+        parameters.id
+    ];
+
+    return await connection.query(sqlStatement, queryParameters);
+}
+
 async function deleteRow(parameters = {}) {
     const sqlStatement = "DELETE FROM gyro_main WHERE id = ?"
     const queryParameters = [parameters.id];
@@ -124,6 +139,7 @@ module.exports = {
     selectById,
     addRow,
     updateRow,
+    updateRowKeepTime,
     deleteRow, 
     insertGyroData, 
     insertDistanceData

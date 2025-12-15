@@ -136,7 +136,7 @@ const buoyUpdateIntentHandler = {
         const y = Number(get('updateYAxis'));
         const z = Number(get('updateZAxis'));
         const distanceId = Number(get('updateDistance'));
-        //const gyroTime = '12:00:00'; // Fixed time for now
+        // Do not modify gyro_time on updates
 
         if (!Number.isFinite(id)) {
             const speakOutput = 'Please provide a valid numeric ID to update.';
@@ -148,13 +148,12 @@ const buoyUpdateIntentHandler = {
         }
 
         try {
-            const result = await buoy.updateRow({
+            const result = await buoy.updateRowKeepTime({
                 id,
                 x_axis: x,
                 y_axis: y,
                 z_axis: z,
                 distance_id: distanceId,
-                //gyro_time: gyroTime,
             });
             const affected = result?.affectedRows ?? result?.rowCount ?? 0;
             const speakOutput = affected > 0
