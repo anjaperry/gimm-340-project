@@ -367,7 +367,7 @@ app.post('/addtodatabase', async (req, res) => {
         }
 
         // 1️⃣ Insert distance first
-        const distanceId = await buoy.insertDistance(distance);
+        const distanceId = await buoy.insertDistanceData(distance);
 
         // 2️⃣ Generate time
         const now = new Date();

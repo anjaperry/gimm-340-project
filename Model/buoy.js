@@ -109,14 +109,15 @@ async function insertGyroData(x_axis, y_axis, z_axis) {
 async function insertDistanceData(distance) {
     const sql = "INSERT INTO distance (distance) VALUES (?)"
 
-    connection.query(sql, [distance], (err, result) => {
-        if (err) {
-            console.error("Insert failed:", err);
-        }
-        else {
-            console.log("Data inserted:", result.insertID);
-        }
-    })
+    return new Promise((resolve, reject) => {
+        connection.query(sql, [distance], (err, result) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(result.insertId);
+            }
+        });
+    });
 }
 
 module.exports = {
