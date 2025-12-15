@@ -75,17 +75,17 @@ const buoyAddIntentHandler = {
             && Alexa.getIntentName(handlerInput.requestEnvelope) === 'buoyAddIntent';
     },
     async handle(handlerInput) {
-        // const get = (name) => Alexa.getSlotValue(handlerInput.requestEnvelope, name);
-        // const x = Number(get('x_axis'));
-        // const y = Number(get('y_axis'));
-        // const z = Number(get('z_axis'));
-        // const distanceId = Number(get('distance_id'));
+        const get = (name) => Alexa.getSlotValue(handlerInput.requestEnvelope, name);
+        const x = Number(get('x_axis'));
+        const y = Number(get('y_axis'));
+        const z = Number(get('z_axis'));
+        const distanceId = Number(get('distance_id'));
 
         // Fixed test values
-        const x = 5;
-        const y = 10;
-        const z = 15;
-        const distanceId = 1;
+        //const x = 5;
+        //const y = 10;
+        //const z = 15;
+        //const distanceId = 1;
         
         // Generate current time in HH:MM:SS format (Mountain Time)
         const now = new Date();
@@ -335,33 +335,33 @@ const ErrorHandler = {
 ////////DATABASE FUNCTIONS////////
 //////////////////////////////////
 //Adds an item to the database
-// async function insertToDatabase(info = null) {
-//     const addResult = await noun.addRow({ info: info });
-//     console.log('Add Result:', addResult);
-// }
+async function insertToDatabase(info = null) {
+    const addResult = await noun.addRow({ info: info });
+    console.log('Add Result:', addResult);
+}
 
 //If ID is null, it returns all items
 //If ID is defined, it returns the item with that ID
-// async function getFromDatabase(id = null) {
-//     let result = null;
-//     if (id == null) result = await noun.selectAllRows();
-//     else result = await noun.selectById({ id: id });
+async function getFromDatabase(id = null) {
+    let result = null;
+    if (id == null) result = await noun.selectAllRows();
+    else result = await noun.selectById({ id: id });
 
-//     console.log('Get Result:', result);
-//     return result;
-// }
+    console.log('Get Result:', result);
+    return result;
+}
 
 //////////////////////////////////
 ////////ARDUINO RECEIVERS/////////
 //////////////////////////////////
-// app.use(express.urlencoded({ extended: true }));
-// //When your arduino adds something to the database, this is the POST request it should be sending
-// app.post('/addtodatabase/',
-//     (req, res) => {
-//         const { param1 } = req.body;
-//         insertToDatabase(param1 || "Default Value");
-//         res.send("POST Request Called")
-//     });
+app.use(express.urlencoded({ extended: true }));
+//When your arduino adds something to the database, this is the POST request it should be sending
+app.post('/addtodatabase/',
+    (req, res) => {
+        const { param1 } = req.body;
+        insertToDatabase(param1 || "Default Value");
+        res.send("POST Request Called")
+    });
 
 //////////////////////////////////
 ////////EXPORT & RUN SERVER///////
