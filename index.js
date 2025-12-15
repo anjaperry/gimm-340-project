@@ -363,54 +363,54 @@ const ErrorHandler = {
 //         res.send("POST Request Called")
 //     });
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// app.use(express.json());
+// app.use(express.urlencoded({ extended: true }));
 
-// Arduino Data Receiver
-app.post('/addtodatabase', async (req, res) => {
-    try {
-        console.log('Raw request body:', req.body);
+// // Arduino Data Receiver
+// app.post('/addtodatabase', async (req, res) => {
+//     try {
+//         console.log('Raw request body:', req.body);
         
-        const { x, y, z, distance } = req.body;
+//         const { x, y, z, distance } = req.body;
         
-        // Validate that values are numbers
-        const xNum = Number(x);
-        const yNum = Number(y);
-        const zNum = Number(z);
+//         // Validate that values are numbers
+//         const xNum = Number(x);
+//         const yNum = Number(y);
+//         const zNum = Number(z);
         
-        console.log('Parsed values:', { x, y, z, xNum, yNum, zNum });
+//         console.log('Parsed values:', { x, y, z, xNum, yNum, zNum });
         
-        if (isNaN(xNum) || isNaN(yNum) || isNaN(zNum)) {
-            console.error('Invalid numeric values received:', { x, y, z });
-            return res.status(400).send('Invalid numeric values');
-        }
+//         if (isNaN(xNum) || isNaN(yNum) || isNaN(zNum)) {
+//             console.error('Invalid numeric values received:', { x, y, z });
+//             return res.status(400).send('Invalid numeric values');
+//         }
         
-        // Generate current time in Mountain Time
-        const now = new Date();
-        const gyroTime = now.toLocaleTimeString('en-US', { 
-            timeZone: 'America/Denver',
-            hour12: false,
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        });
+//         // Generate current time in Mountain Time
+//         const now = new Date();
+//         const gyroTime = now.toLocaleTimeString('en-US', { 
+//             timeZone: 'America/Denver',
+//             hour12: false,
+//             hour: '2-digit',
+//             minute: '2-digit',
+//             second: '2-digit'
+//         });
         
-        // Insert into database
-        const result = await buoy.addRow({
-            x_axis: xNum,
-            y_axis: yNum,
-            z_axis: zNum,
-            distance_id: 1,
-            gyro_time: gyroTime,
-        });
+//         // Insert into database
+//         const result = await buoy.addRow({
+//             x_axis: xNum,
+//             y_axis: yNum,
+//             z_axis: zNum,
+//             distance_id: 1,
+//             gyro_time: gyroTime,
+//         });
         
-        res.status(200).send('Data received and stored');
-        console.log('Arduino data stored:', { x: xNum, y: yNum, z: zNum, distance, gyroTime });
-    } catch (err) {
-        console.error('Error storing Arduino data:', err);
-        res.status(500).send('Error storing data');
-    }
-});
+//         res.status(200).send('Data received and stored');
+//         console.log('Arduino data stored:', { x: xNum, y: yNum, z: zNum, distance, gyroTime });
+//     } catch (err) {
+//         console.error('Error storing Arduino data:', err);
+//         res.status(500).send('Error storing data');
+//     }
+// });
 
 //////////////////////////////////
 ////////EXPORT & RUN SERVER///////
