@@ -363,6 +363,41 @@ const ErrorHandler = {
 //         res.send("POST Request Called")
 //     });
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Arduino Data Receiver
+app.post('/addtodatabase', async (req, res) => {
+    try {
+        const { x, y, z, distance } = req.body;
+        
+        // Generate current time in Mountain Time
+        const now = new Date();
+        const gyroTime = now.toLocaleTimeString('en-US', { 
+            timeZone: 'America/Denver',
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        
+        // Insert into database
+        const result = await buoy.addRow({
+            x_axis: Number(x),
+            y_axis: Number(y),
+            z_axis: Number(z),
+            distance_id: 1, // Or parse from Arduino if needed
+            gyro_time: gyroTime,
+        });
+        
+        res.status(200).send('Data received and stored');
+        console.log('Arduino data stored:', { x, y, z, distance, gyroTime });
+    } catch (err) {
+        console.error('Error storing Arduino data:', err);
+        res.status(500).send('Error storing data');
+    }
+});
+
 //////////////////////////////////
 ////////EXPORT & RUN SERVER///////
 //////////////////////////////////
