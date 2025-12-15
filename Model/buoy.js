@@ -41,10 +41,38 @@ async function deleteRow(parameters = {}) {
     return await connection.query(sqlStatement, queryParameters);
 }
 
+async function insertGyroData(x_axis, y_axis, z_axis) {
+    const sql = "INSERT INTO gyro_main (x_axis, y_axis, z_axis) VALUES (?, ?, ?)"
+
+    connection.query(sql, [x_axis, y_axis, z_axis], (err, result) => {
+        if (err) {
+            console.error("Insert failed:", err);
+        }
+        else {
+            console.log("Data inserted:", result.insertID);
+        }
+    })
+}
+
+async function insertDistanceData(distance) {
+    const sql = "INSERT INTO distance (distance) VALUES (?)"
+
+    connection.query(sql, [distance], (err, result) => {
+        if (err) {
+            console.error("Insert failed:", err);
+        }
+        else {
+            console.log("Data inserted:", result.insertID);
+        }
+    })
+}
+
 module.exports = {
     selectAllRows,
     selectById,
     addRow,
     updateRow,
-    deleteRow
+    deleteRow, 
+    insertGyroData, 
+    insertDistanceData
 }
