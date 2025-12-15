@@ -10,7 +10,7 @@ char ssid[] = "ARRIS-1E9D";
 char pass[] = "engine.011.click";
 
 // ===== Server Info =====
-char serverAddress[] = "aws-test-jx11.onrender.com";
+char serverAddress[] = "aws-test-server.onrender.com";
 int port = 80;
 
 // ===== MPU6050 Variables =====
@@ -133,18 +133,20 @@ void sendSensorData() {
   WiFiClient client;
   HttpClient httpClient(client, serverAddress, port);
 
-  String postData =
-    "roll=" + String(roll, 2) +
-    "&pitch=" + String(pitch, 2) +
-    "&yaw=" + String(yaw, 2) +
-    "&distance=" + String(distance, 2);
+  String jsonData = "{";
+  jsonData += "\"x\":" + String(roll, 2) + ",";
+  jsonData += "\"y\":" + String(pitch, 2) + ",";
+  jsonData += "\"z\":" + String(yaw, 2) + ",";
+  jsonData += "\"distance\":" + String(distance, 2);
+  jsonData += "}";
 
   httpClient.beginRequest();
   httpClient.post("/addtodatabase");
-  httpClient.sendHeader("Content-Type", "application/x-www-form-urlencoded");
-  httpClient.sendHeader("Content-Length", postData.length());
+  httpClient.sendHeader("Content-Type", "application/json");
+  httpClient.sendHeader("Content-Length", jsonData.length());
   httpClient.endRequest();
-  httpClient.print(postData);
+
+  httpClient.print(jsonData);
 
   int statusCode = httpClient.responseStatusCode();
   String response = httpClient.responseBody();

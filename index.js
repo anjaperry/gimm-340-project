@@ -17,6 +17,10 @@ const Alexa = require('ask-sdk-core');
 //Express
 const express =  require('express');
 const app = express();
+
+app.use(express.urlencoded({ extended: true}));
+app.use(express.json());
+
 const { ExpressAdapter } = require('ask-sdk-express-adapter');
 
 //This is called when the user opens your Alexa app.
@@ -335,33 +339,59 @@ const ErrorHandler = {
 ////////DATABASE FUNCTIONS////////
 //////////////////////////////////
 //Adds an item to the database
-async function insertToDatabase(info = null) {
-    const addResult = await noun.addRow({ info: info });
-    console.log('Add Result:', addResult);
-}
+//async function insertToDatabase(info = null) {
+//    const addResult = await buoy.addRow({ info: info });
+//    console.log('Add Result:', addResult);
+//}
 
 //If ID is null, it returns all items
 //If ID is defined, it returns the item with that ID
-async function getFromDatabase(id = null) {
-    let result = null;
-    if (id == null) result = await noun.selectAllRows();
-    else result = await noun.selectById({ id: id });
+//async function getFromDatabase(id = null) {
+//    let result = null;
+//    if (id == null) result = await buoy.selectAllRows();
+//    else result = await buoy.selectById({ id: id });
 
-    console.log('Get Result:', result);
-    return result;
-}
+//    console.log('Get Result:', result);
+//    return result;
+//}
 
 //////////////////////////////////
 ////////ARDUINO RECEIVERS/////////
 //////////////////////////////////
-app.use(express.urlencoded({ extended: true }));
-//When your arduino adds something to the database, this is the POST request it should be sending
-app.post('/addtodatabase/',
-    (req, res) => {
-        const { param1 } = req.body;
-        insertToDatabase(param1 || "Default Value");
-        res.send("POST Request Called")
-    });
+app.post('/addtodatabase', async (req, res) => {
+    try {
+        const { x, y, z, distance } = req.body;
+
+        if (![x, y, z, distance].every(Number.isFinite)) {
+            return res.status(400).send("Invalid data");
+        }
+
+        // 1️⃣ Insert distance first
+        const distanceId = await buoy.insertDistance(distance);
+
+        // 2️⃣ Generate time
+        const now = new Date();
+        const gyroTime = now.toLocaleTimeString('en-US', {
+            timeZone: 'America/Denver',
+            hour12: false
+        });
+
+        // 3️⃣ Insert gyro data using distance_id
+        await buoy.addRow({
+            x_axis: x,
+            y_axis: y,
+            z_axis: z,
+            distance_id: distanceId,
+            gyro_time: gyroTime
+        });
+
+        res.send("SUCCESS");
+    }
+    catch (err) {
+        console.error("Arduino DB insert error:", err);
+        res.status(500).send("Database error");
+    }
+});
 
 //////////////////////////////////
 ////////EXPORT & RUN SERVER///////
